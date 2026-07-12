@@ -14,6 +14,7 @@ Codex Voice watches local Codex transcripts and reads useful assistant updates a
 - **Local privacy:** no cloud API is used by the app. Diagnostic logs exclude spoken text unless explicitly enabled.
 - **Resource-aware Voxtral:** the local server starts on demand, is released when switching back to macOS TTS, and records latency/resource metrics.
 - **Portable pronunciation dictionary:** macOS-only corrections live in a small external CSV that can be imported or exported between Macs.
+- **System-language menus:** the app uses French on French systems and English everywhere else.
 
 ## Requirements
 
@@ -53,7 +54,7 @@ The app does not include or redistribute model weights. Voxtral weights are down
 
 ## Status
 
-`v1.0.0` is the first stable local release. The focus is comfort, natural voice quality, interruption behavior, and small operational surface area rather than a full replacement for Codex.
+`v1.0.1` is the first public maintenance release. The focus is comfort, natural voice quality, interruption behavior, and small operational surface area rather than a full replacement for Codex.
 
 ## Disclaimer
 

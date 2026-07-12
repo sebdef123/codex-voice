@@ -61,11 +61,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private var idleStatus: String {
-        guard isEnabled else { return "Surveillance suspendue" }
+        guard isEnabled else { return AppStrings.text("status.monitoringPaused") }
         guard keyNavigationMonitor.isMonitoringAvailable else {
-            return "Surveillance active · raccourcis indisponibles"
+            return AppStrings.text("status.monitoringShortcutsUnavailable")
         }
-        return speaker.selectedEngine == .macOS ? "Surveillance active" : "Surveillance active · Voxtral"
+        return speaker.selectedEngine == .macOS
+            ? AppStrings.text("status.monitoringActive")
+            : AppStrings.text("status.monitoringVoxtral")
     }
 
     private func installEditMenu() {
@@ -74,17 +76,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let editMenuItem = NSMenuItem()
 
         let appMenu = NSMenu(title: "Codex Voice 2")
-        appMenu.addItem(withTitle: "Quitter Codex Voice 2", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: AppStrings.text("app.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appMenuItem.submenu = appMenu
 
-        let editMenu = NSMenu(title: "Edition")
-        editMenu.addItem(withTitle: "Annuler", action: Selector(("undo:")), keyEquivalent: "z")
-        editMenu.addItem(withTitle: "Retablir", action: Selector(("redo:")), keyEquivalent: "Z")
+        let editMenu = NSMenu(title: AppStrings.text("menu.edit"))
+        editMenu.addItem(withTitle: AppStrings.text("menu.undo"), action: Selector(("undo:")), keyEquivalent: "z")
+        editMenu.addItem(withTitle: AppStrings.text("menu.redo"), action: Selector(("redo:")), keyEquivalent: "Z")
         editMenu.addItem(.separator())
-        editMenu.addItem(withTitle: "Couper", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        editMenu.addItem(withTitle: "Copier", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        editMenu.addItem(withTitle: "Coller", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        editMenu.addItem(withTitle: "Tout selectionner", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        editMenu.addItem(withTitle: AppStrings.text("menu.cut"), action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: AppStrings.text("menu.copy"), action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: AppStrings.text("menu.paste"), action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: AppStrings.text("menu.selectAll"), action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editMenuItem.submenu = editMenu
 
         mainMenu.addItem(appMenuItem)
@@ -100,7 +102,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             if speaker.isSpeaking {
                 AudioDebugLogger.log("speech_stop", fields: ["reason": "new_codex_event"])
                 speaker.stop(reason: "new_codex_event")
-                updateStatus("Lecture interrompue")
+                updateStatus(AppStrings.text("status.speechInterrupted"))
             }
         case .commentary(let message):
             logReceivedMessage(kind: "commentary", message: message)
@@ -110,12 +112,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             guard let prepared = ContentFilter.prepareDetailedForCommentary(message) else {
                 AudioDebugLogger.log("message_skipped", fields: ["kind": "commentary", "reason": "technical_or_empty"])
-                updateStatus("Phrase technique ignoree")
+                updateStatus(AppStrings.text("status.technicalMessageSkipped"))
                 return
             }
             AudioDebugLogger.logPreparedSpeech(kind: "commentary", raw: message, prepared: prepared)
             speaker.speak(prepared.text, sourceKind: "commentary", rawText: message)
-            updateStatus("Lecture de la phrase de demarrage")
+            updateStatus(AppStrings.text("status.readingLiveUpdate"))
         case .taskComplete(let message, _):
             guard isEnabled else { return }
             logReceivedMessage(kind: "final", message: message)
@@ -128,7 +130,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             speaker.speak(prepared.text, sourceKind: "final", rawText: message)
             historyCursor = nil
             lastMessageMenuItem.isEnabled = true
-            updateStatus("Lecture de la derniere reponse")
+            updateStatus(AppStrings.text("status.readingLatestReply"))
         case .foundLatest(let message):
             logReceivedMessage(kind: "replay", message: message)
             let prepared = ContentFilter.prepareDetailedForSpeech(message)
@@ -139,7 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             speaker.speak(prepared.text, sourceKind: "replay", rawText: message)
             lastMessageMenuItem.isEnabled = true
-            updateStatus("Relecture de la derniere reponse")
+            updateStatus(AppStrings.text("status.replayingLatestReply"))
         case .watchError(let message):
             AudioDebugLogger.log("watch_error", fields: ["message": message])
             updateStatus(message)
@@ -152,115 +154,115 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.button?.image = NSImage(systemSymbolName: "speaker.wave.2", accessibilityDescription: "Codex Voice 2")
 
         let menu = NSMenu()
-        statusMenuItem = NSMenuItem(title: "Initialisation...", action: nil, keyEquivalent: "")
+        statusMenuItem = NSMenuItem(title: AppStrings.text("menu.initializing"), action: nil, keyEquivalent: "")
         statusMenuItem.isEnabled = false
         menu.addItem(statusMenuItem)
         menu.addItem(.separator())
 
-        enabledItem = NSMenuItem(title: "Lecture automatique", action: #selector(toggleEnabled), keyEquivalent: "")
+        enabledItem = NSMenuItem(title: AppStrings.text("menu.automaticReading"), action: #selector(toggleEnabled), keyEquivalent: "")
         enabledItem.target = self
         enabledItem.state = .on
         menu.addItem(enabledItem)
 
-        commentaryItem = NSMenuItem(title: "Lire les phrases de demarrage", action: #selector(toggleCommentary), keyEquivalent: "")
+        commentaryItem = NSMenuItem(title: AppStrings.text("menu.readLiveUpdates"), action: #selector(toggleCommentary), keyEquivalent: "")
         commentaryItem.target = self
         commentaryItem.state = shouldReadCommentary ? .on : .off
         menu.addItem(commentaryItem)
 
-        includeTextInLogsItem = NSMenuItem(title: "Inclure le texte lu dans les logs de diagnostic", action: #selector(toggleTextInLogs), keyEquivalent: "")
+        includeTextInLogsItem = NSMenuItem(title: AppStrings.text("menu.includeSpokenText"), action: #selector(toggleTextInLogs), keyEquivalent: "")
         includeTextInLogsItem.target = self
         includeTextInLogsItem.state = AudioDebugLogger.includesTextContent ? .on : .off
         menu.addItem(includeTextInLogsItem)
 
-        let replay = NSMenuItem(title: "Relire la derniere reponse", action: #selector(replayLatest), keyEquivalent: "r")
+        let replay = NSMenuItem(title: AppStrings.text("menu.readLatestReply"), action: #selector(replayLatest), keyEquivalent: "r")
         replay.target = self
         replay.keyEquivalentModifierMask = [.control, .option]
         lastMessageMenuItem = replay
         menu.addItem(replay)
 
-        let previous = NSMenuItem(title: "Relire le bloc precedent", action: #selector(replayPreviousHistoryItem), keyEquivalent: "\u{F702}")
+        let previous = NSMenuItem(title: AppStrings.text("menu.readPreviousBlock"), action: #selector(replayPreviousHistoryItem), keyEquivalent: "\u{F702}")
         previous.target = self
         previous.keyEquivalentModifierMask = []
         menu.addItem(previous)
 
-        let next = NSMenuItem(title: "Relire le bloc suivant", action: #selector(replayNextHistoryItem), keyEquivalent: "\u{F703}")
+        let next = NSMenuItem(title: AppStrings.text("menu.readNextBlock"), action: #selector(replayNextHistoryItem), keyEquivalent: "\u{F703}")
         next.target = self
         next.keyEquivalentModifierMask = []
         menu.addItem(next)
 
-        let stop = NSMenuItem(title: "Arreter la lecture", action: #selector(stopSpeaking), keyEquivalent: ".")
+        let stop = NSMenuItem(title: AppStrings.text("menu.stopSpeaking"), action: #selector(stopSpeaking), keyEquivalent: ".")
         stop.target = self
         stop.keyEquivalentModifierMask = [.control, .option]
         menu.addItem(stop)
         menu.addItem(.separator())
 
-        let engineItem = NSMenuItem(title: "Moteur", action: nil, keyEquivalent: "")
+        let engineItem = NSMenuItem(title: AppStrings.text("menu.engine"), action: nil, keyEquivalent: "")
         engineMenu = NSMenu()
         engineItem.submenu = engineMenu
         menu.addItem(engineItem)
         rebuildEngineMenu()
 
-        let voiceItem = NSMenuItem(title: "Voix", action: nil, keyEquivalent: "")
+        let voiceItem = NSMenuItem(title: AppStrings.text("menu.voice"), action: nil, keyEquivalent: "")
         voiceMenu = NSMenu()
         voiceItem.submenu = voiceMenu
         menu.addItem(voiceItem)
         rebuildVoiceMenu()
 
-        let rateItem = NSMenuItem(title: "Vitesse", action: nil, keyEquivalent: "")
+        let rateItem = NSMenuItem(title: AppStrings.text("menu.speed"), action: nil, keyEquivalent: "")
         rateMenu = NSMenu()
         rateItem.submenu = rateMenu
         menu.addItem(rateItem)
         rebuildRateMenu()
 
         menu.addItem(.separator())
-        let openSessions = NSMenuItem(title: "Ouvrir le dossier des transcripts", action: #selector(openSessionsFolder), keyEquivalent: "")
+        let openSessions = NSMenuItem(title: AppStrings.text("menu.openTranscripts"), action: #selector(openSessionsFolder), keyEquivalent: "")
         openSessions.target = self
         menu.addItem(openSessions)
 
-        let openAudioLog = NSMenuItem(title: "Ouvrir le log audio", action: #selector(openAudioLog), keyEquivalent: "")
+        let openAudioLog = NSMenuItem(title: AppStrings.text("menu.openAudioLog"), action: #selector(openAudioLog), keyEquivalent: "")
         openAudioLog.target = self
         menu.addItem(openAudioLog)
 
-        let clearAudioLogs = NSMenuItem(title: "Effacer les logs audio", action: #selector(clearAudioLogs), keyEquivalent: "")
+        let clearAudioLogs = NSMenuItem(title: AppStrings.text("menu.clearAudioLogs"), action: #selector(clearAudioLogs), keyEquivalent: "")
         clearAudioLogs.target = self
         menu.addItem(clearAudioLogs)
 
-        let openPronunciationDictionary = NSMenuItem(title: "Ouvrir le dictionnaire de prononciation", action: #selector(openPronunciationDictionary), keyEquivalent: "")
+        let openPronunciationDictionary = NSMenuItem(title: AppStrings.text("menu.openPronunciationDictionary"), action: #selector(openPronunciationDictionary), keyEquivalent: "")
         openPronunciationDictionary.target = self
         menu.addItem(openPronunciationDictionary)
 
-        let importPronunciationDictionary = NSMenuItem(title: "Importer un dictionnaire de prononciation...", action: #selector(importPronunciationDictionary), keyEquivalent: "")
+        let importPronunciationDictionary = NSMenuItem(title: AppStrings.text("menu.importPronunciationDictionary"), action: #selector(importPronunciationDictionary), keyEquivalent: "")
         importPronunciationDictionary.target = self
         menu.addItem(importPronunciationDictionary)
 
-        let exportPronunciationDictionary = NSMenuItem(title: "Exporter le dictionnaire de prononciation...", action: #selector(exportPronunciationDictionary), keyEquivalent: "")
+        let exportPronunciationDictionary = NSMenuItem(title: AppStrings.text("menu.exportPronunciationDictionary"), action: #selector(exportPronunciationDictionary), keyEquivalent: "")
         exportPronunciationDictionary.target = self
         menu.addItem(exportPronunciationDictionary)
 
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quitter Codex Voice 2", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: AppStrings.text("app.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
     }
 
     private func configureSpeech() {
         speaker.onFinish = { [weak self] in
             AudioDebugLogger.log("speech_finish")
-            self?.updateStatus(self?.idleStatus ?? "Surveillance active")
+            self?.updateStatus(self?.idleStatus ?? AppStrings.text("status.monitoringActive"))
         }
         speaker.onFirstAudio = { [weak self] in
             guard let self else { return }
-            self.updateStatus(self.speaker.selectedEngine == .macOS ? "Lecture macOS" : "Lecture Voxtral")
+            self.updateStatus(self.speaker.selectedEngine == .macOS ? AppStrings.text("status.readingMacOS") : AppStrings.text("status.readingVoxtral"))
         }
         speaker.onError = { [weak self] error in
             AudioDebugLogger.log("speech_error_status", fields: ["message": error])
-            self?.updateStatus("Erreur Voxtral - ouvre le log")
+            self?.updateStatus(AppStrings.text("status.voxtralError"))
         }
         speaker.onVoxtralStateChange = { [weak self] state in
             guard let self, self.speaker.selectedEngine == .voxtralStreaming else { return }
             switch state {
-            case .starting: self.updateStatus("Preparation Voxtral...")
+            case .starting: self.updateStatus(AppStrings.text("status.preparingVoxtral"))
             case .ready: self.updateStatus(self.idleStatus)
-            case .unavailable: self.updateStatus("Voxtral indisponible")
+            case .unavailable: self.updateStatus(AppStrings.text("status.voxtralUnavailable"))
             case .stopped: self.updateStatus(self.idleStatus)
             }
         }
@@ -290,7 +292,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self, self.speaker.isSpeaking else { return }
                 AudioDebugLogger.log("speech_stop", fields: ["reason": "right_option_push_to_talk"])
                 self.speaker.stop(reason: "right_option_push_to_talk")
-                self.updateStatus("Lecture coupee par Option droite")
+                self.updateStatus(AppStrings.text("status.speechStoppedRightOption"))
             }
         }
         keyNavigationMonitor.start()
@@ -312,7 +314,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if speaker.selectedEngine == .macOS {
             let voices = VoiceOutputController.availableFrenchVoices()
             if voices.isEmpty {
-                let item = NSMenuItem(title: "Aucune voix francaise trouvee", action: nil, keyEquivalent: "")
+                let item = NSMenuItem(title: AppStrings.text("voice.noFrenchMacOSVoices"), action: nil, keyEquivalent: "")
                 item.isEnabled = false
                 voiceMenu.addItem(item)
                 return
@@ -321,18 +323,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let others = voices.filter { voice in !recommended.contains { $0.identifier == voice.identifier } }
             if !others.isEmpty {
                 voiceMenu.addItem(.separator())
-                addMacVoiceSection("Autres", voices: others)
+                addMacVoiceSection(AppStrings.text("voice.other"), voices: others)
             }
             return
         }
 
-        addVoiceSection("Recommandé", voices: VoxtralVoiceCatalog.recommended)
+        addVoiceSection(AppStrings.text("voice.recommended"), voices: VoxtralVoiceCatalog.recommended)
         voiceMenu.addItem(.separator())
-        addVoiceSection("Autres", voices: VoxtralVoiceCatalog.others)
+        addVoiceSection(AppStrings.text("voice.other"), voices: VoxtralVoiceCatalog.others)
     }
 
     private func addRecommendedMacVoiceSection(from voices: [SpeechController.Voice]) -> [SpeechController.Voice] {
-        let label = NSMenuItem(title: "Recommandé", action: nil, keyEquivalent: "")
+        let label = NSMenuItem(title: AppStrings.text("voice.recommended"), action: nil, keyEquivalent: "")
         label.isEnabled = false
         voiceMenu.addItem(label)
 
@@ -347,7 +349,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 installed.append(voice)
             } else {
                 let unavailable = NSMenuItem(
-                    title: "\(displayName) (Enhanced) — non disponible",
+                    title: AppStrings.format("voice.unavailable", displayName),
                     action: nil,
                     keyEquivalent: ""
                 )
@@ -399,12 +401,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func rebuildRateMenu() {
         rateMenu.removeAllItems()
         guard speaker.selectedEngine == .macOS else {
-            let item = NSMenuItem(title: "Vitesse native Voxtral", action: nil, keyEquivalent: "")
+            let item = NSMenuItem(title: AppStrings.text("rate.voxtralNative"), action: nil, keyEquivalent: "")
             item.isEnabled = false
             rateMenu.addItem(item)
             return
         }
-        let rates: [(String, Float)] = [("Lente", 0.38), ("Normale", 0.48), ("Rapide", 0.53), ("Tres rapide", 0.58)]
+        let rates: [(String, Float)] = [
+            (AppStrings.text("rate.slow"), 0.38),
+            (AppStrings.text("rate.normal"), 0.48),
+            (AppStrings.text("rate.fast"), 0.53),
+            (AppStrings.text("rate.veryFast"), 0.58)
+        ]
         for (title, rate) in rates {
             let item = NSMenuItem(title: title, action: #selector(selectRate(_:)), keyEquivalent: "")
             item.target = self
@@ -425,7 +432,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let message = watcher.latestCompletedMessage() {
             handle(.foundLatest(message))
         } else {
-            updateStatus("Aucune reponse finale trouvee")
+            updateStatus(AppStrings.text("status.noFinalReply"))
         }
     }
 
@@ -441,14 +448,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func replayHistory(direction: Int) {
         let history = watcher.assistantHistory()
         guard !history.isEmpty else {
-            updateStatus("Aucun bloc assistant trouve")
+            updateStatus(AppStrings.text("status.noAssistantBlocks"))
             AudioDebugLogger.log("history_navigation_empty")
             return
         }
         let current = historyCursor ?? history.count
         let nextIndex = historyCursor == nil ? history.count - 1 : max(0, min(history.count - 1, current + direction))
         guard nextIndex != current else {
-            updateStatus(direction < 0 ? "Debut de la conversation" : "Fin de la conversation")
+            updateStatus(direction < 0 ? AppStrings.text("status.startOfConversation") : AppStrings.text("status.endOfConversation"))
             AudioDebugLogger.log("history_navigation_boundary", fields: ["direction": direction, "historyCount": history.count, "cursor": current])
             return
         }
@@ -456,7 +463,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let prepared = ContentFilter.prepareDetailedForSpeech(item.message)
         guard !prepared.text.isEmpty else {
             historyCursor = nextIndex
-            updateStatus("Bloc technique ignore")
+            updateStatus(AppStrings.text("status.technicalBlockSkipped"))
             AudioDebugLogger.log("history_navigation_skipped", fields: ["index": nextIndex, "historyCount": history.count, "kind": item.kind])
             return
         }
@@ -464,7 +471,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AudioDebugLogger.logPreparedSpeech(kind: "history_\(item.kind)", raw: item.message, prepared: prepared)
         AudioDebugLogger.log("history_navigation", fields: ["direction": direction, "index": nextIndex, "historyCount": history.count, "kind": item.kind])
         speaker.speak(prepared.text, sourceKind: "history_\(item.kind)", rawText: item.message)
-        updateStatus("Lecture bloc \(nextIndex + 1)/\(history.count)")
+        updateStatus(AppStrings.format("status.readingBlock", nextIndex + 1, history.count))
     }
 
     @objc private func selectEngine(_ sender: NSMenuItem) {
@@ -474,7 +481,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rebuildEngineMenu()
         rebuildVoiceMenu()
         rebuildRateMenu()
-        updateStatus(engine == .macOS ? idleStatus : "Preparation Voxtral...")
+        updateStatus(engine == .macOS ? idleStatus : AppStrings.text("status.preparingVoxtral"))
     }
 
     @objc private func selectMacVoice(_ sender: NSMenuItem) {
@@ -484,7 +491,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let voice = VoiceOutputController.availableFrenchVoices().first(where: { $0.identifier == identifier }) {
             let quality = isDownloadedQualityMacVoice(voice) ? "enhanced_downloaded" : "standard"
             AudioDebugLogger.log("mac_voice_selected", fields: ["voice": voice.name, "quality": quality])
-            updateStatus("Voix macOS: \(macVoiceMenuTitle(voice))")
+            updateStatus(AppStrings.format("status.macOSVoice", macVoiceMenuTitle(voice)))
         }
         rebuildVoiceMenu()
     }
@@ -512,7 +519,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             FileManager.default.createFile(atPath: url.path, contents: nil)
         }
         AudioDebugLogger.log("log_opened_from_menu")
-        openInTextEdit(url, failureStatus: "Ouverture du log impossible")
+        openInTextEdit(url, failureStatus: AppStrings.text("status.openLogFailed"))
     }
 
     @objc private func toggleTextInLogs() {
@@ -524,22 +531,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func clearAudioLogs() {
         let alert = NSAlert()
-        alert.messageText = "Effacer les logs audio ?"
-        alert.informativeText = "Les evenements audio et le journal Voxtral seront supprimes de cet ordinateur. Cette action est irreversible."
-        alert.addButton(withTitle: "Effacer")
-        alert.addButton(withTitle: "Annuler")
+        alert.messageText = AppStrings.text("alert.clearAudioLogsTitle")
+        alert.informativeText = AppStrings.text("alert.clearAudioLogsMessage")
+        alert.addButton(withTitle: AppStrings.text("alert.clear"))
+        alert.addButton(withTitle: AppStrings.text("alert.cancel"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
 
         speaker.clearDiagnosticLogs()
         AudioDebugLogger.log("diagnostic_logs_cleared", fields: [
             "includesTextContent": AudioDebugLogger.includesTextContent
         ])
-        updateStatus("Logs audio effaces")
+        updateStatus(AppStrings.text("status.audioLogCleared"))
     }
 
     @objc private func openPronunciationDictionary() {
         let dictionaryURL = PronunciationDictionary.ensureUserFileExists()
-        openInTextEdit(dictionaryURL, failureStatus: "Ouverture du dictionnaire impossible")
+        openInTextEdit(dictionaryURL, failureStatus: AppStrings.text("status.openDictionaryFailed"))
     }
 
     @objc private func importPronunciationDictionary() {
@@ -552,9 +559,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             try PronunciationDictionary.importUserFile(from: sourceURL)
             AudioDebugLogger.log("pronunciation_dictionary_imported")
-            updateStatus("Dictionnaire importe")
+            updateStatus(AppStrings.text("status.dictionaryImported"))
         } catch {
-            updateStatus("Import impossible: \(error.localizedDescription)")
+            updateStatus(AppStrings.format("status.importFailed", error.localizedDescription))
         }
     }
 
@@ -568,9 +575,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let content = try String(contentsOf: PronunciationDictionary.ensureUserFileExists(), encoding: .utf8)
             try content.write(to: destinationURL, atomically: true, encoding: .utf8)
             AudioDebugLogger.log("pronunciation_dictionary_exported")
-            updateStatus("Dictionnaire exporte")
+            updateStatus(AppStrings.text("status.dictionaryExported"))
         } catch {
-            updateStatus("Export impossible: \(error.localizedDescription)")
+            updateStatus(AppStrings.format("status.exportFailed", error.localizedDescription))
         }
     }
 

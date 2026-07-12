@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1 - 2026-07-12
+
+- Menus, statuts et alertes localises automatiquement en francais ou en anglais.
+- L'anglais est utilise comme repli pour les autres langues systeme.
+
 ## 1.0.0 - 2026-07-12
 
 - Lecture locale des reponses Codex avec macOS TTS ou Voxtral Streaming.

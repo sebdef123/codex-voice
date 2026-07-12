@@ -108,7 +108,7 @@ final class TranscriptWatcher {
             let files = self.transcriptFiles()
             if files.isEmpty {
                 DispatchQueue.main.async {
-                    self.onEvent?(.watchError("Aucun transcript trouve"))
+                    self.onEvent?(.watchError(AppStrings.text("status.noTranscriptFound")))
                 }
                 return
             }
@@ -160,7 +160,7 @@ final class TranscriptWatcher {
             pendingLineData[file] = buffered
         } catch {
             DispatchQueue.main.async {
-                self.onEvent?(.watchError("Erreur lecture transcript"))
+                self.onEvent?(.watchError(AppStrings.text("status.transcriptReadError")))
             }
         }
     }

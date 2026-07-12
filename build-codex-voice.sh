@@ -30,6 +30,10 @@ cp "$ROOT_DIR/CodexVoice/Resources/Scripts/voxtral_text.py" "$RESOURCES_DIR/Scri
 rm -rf "$RESOURCES_DIR/Pronunciation"
 mkdir -p "$RESOURCES_DIR/Pronunciation"
 cp "$ROOT_DIR/CodexVoice/Resources/Pronunciation/pronunciations.csv" "$RESOURCES_DIR/Pronunciation/"
+for localization in en fr; do
+  rm -rf "$RESOURCES_DIR/$localization.lproj"
+  ditto "$ROOT_DIR/CodexVoice/Resources/$localization.lproj" "$RESOURCES_DIR/$localization.lproj"
+done
 chmod +x "$MACOS_DIR/CodexVoice2" "$RESOURCES_DIR/Scripts"/*.py "$RESOURCES_DIR/Scripts"/*.sh
 
 if command -v codesign >/dev/null 2>&1; then
