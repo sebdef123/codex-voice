@@ -145,7 +145,7 @@ enum ContentFilter {
                 continue
             }
 
-            if shouldOmitTechnicalLine(trimmed) {
+            if shouldOmitSkillMarker(trimmed) || shouldOmitTechnicalLine(trimmed) {
                 omittedTechnicalLines += 1
                 totalOmittedTechnicalLines += 1
                 continue
@@ -162,6 +162,15 @@ enum ContentFilter {
             omittedCodeBlocks: totalOmittedCodeBlocks,
             omittedTechnicalLines: totalOmittedTechnicalLines
         )
+    }
+
+    private static func shouldOmitSkillMarker(_ line: String) -> Bool {
+        let normalized = line.folding(
+            options: [.caseInsensitive, .diacriticInsensitive],
+            locale: .current
+        )
+        let pattern = #"^skills?\s+(?:used|utilise(?:e)?)\s*:"#
+        return normalized.range(of: pattern, options: .regularExpression) != nil
     }
 
     private static func shouldOmitTechnicalLine(_ line: String) -> Bool {

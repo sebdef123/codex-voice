@@ -69,7 +69,7 @@ The app does not include or redistribute model weights. Voxtral weights are down
 
 ## Status
 
-`v1.0.1` is the first public maintenance release. The focus is comfort, natural voice quality, interruption behavior, and small operational surface area rather than a full replacement for Codex.
+`v1.0.2` is the current public maintenance release. The focus is comfort, natural voice quality, interruption behavior, and small operational surface area rather than a full replacement for Codex.
 
 ## Disclaimer
 

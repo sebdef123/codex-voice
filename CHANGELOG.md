@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2 - 2026-07-12
+
+- Les lignes automatiques `Skill used:` et `Skill utilisée:` sont ignorees a la lecture.
+
 ## 1.0.1 - 2026-07-12
 
 - Menus, statuts et alertes localises automatiquement en francais ou en anglais.

@@ -18,6 +18,15 @@ struct ContentFilterRegression {
             name: "tool commentary suppression"
         )
         expect(
+            ContentFilter.prepareForSpeech("La mise a jour est prete.\nSkill utilisée : browser"),
+            equals: "La mise a jour est prete.",
+            name: "French skill marker suppression"
+        )
+        expectNil(
+            ContentFilter.prepareForCommentary("Skill used: browser"),
+            name: "English skill marker suppression"
+        )
+        expect(
             PronunciationDictionary.applyForMacOSVoice(to: "GitHub et macOS sont excellents."),
             equals: "Guite-hub et mac-O-S sont excellents.",
             name: "pronunciation dictionary capitalization"
