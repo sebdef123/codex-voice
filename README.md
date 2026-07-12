@@ -6,6 +6,21 @@ Codex Voice watches local Codex transcripts and reads useful assistant updates a
 
 ![Platform](https://img.shields.io/badge/platform-macOS%2012%2B-black) ![Architecture](https://img.shields.io/badge/architecture-Apple%20Silicon-black) ![Privacy](https://img.shields.io/badge/privacy-local--first-brightgreen)
 
+## Install with Codex
+
+Copy and paste this prompt into Codex to install the app on another Mac:
+
+```text
+Install the latest Codex Voice release from:
+https://github.com/sebdef123/codex-voice
+
+1. Confirm that this Mac uses Apple Silicon.
+2. Download the latest release ZIP, extract it, and move Codex Voice 2.app to /Applications.
+3. Start with macOS TTS only. Do not prepare or install Voxtral yet.
+4. Launch the app and tell me which macOS permissions I need to approve, including Input Monitoring. If Gatekeeper blocks the first launch, explain the safe manual step I need to take.
+5. Do not modify my existing Codex configuration. Do not enable or install Voxtral without asking me first.
+```
+
 ## Highlights
 
 - **Two local engines:** macOS TTS for instant response, or local Voxtral Streaming for a more natural voice.
