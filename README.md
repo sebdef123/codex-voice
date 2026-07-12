@@ -16,9 +16,10 @@ https://github.com/sebdef123/codex-voice
 
 1. Confirm that this Mac uses Apple Silicon.
 2. Download the latest release ZIP, extract it, and move Codex Voice 2.app to /Applications.
-3. Start with macOS TTS only. Do not prepare or install Voxtral yet.
+3. Prepare the local Voxtral backend. If needed, install uv, then run Preparer Voxtral.command included in the release to download the pinned local model and its dependencies.
 4. Launch the app and tell me which macOS permissions I need to approve, including Input Monitoring. If Gatekeeper blocks the first launch, explain the safe manual step I need to take.
-5. Do not modify my existing Codex configuration. Do not enable or install Voxtral without asking me first.
+5. Select Voxtral Streaming in the app and run a short speech test to confirm that the local backend works.
+6. Do not modify my existing Codex configuration.
 ```
 
 ## Highlights
