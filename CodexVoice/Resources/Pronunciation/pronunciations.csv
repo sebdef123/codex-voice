@@ -1,0 +1,8 @@
+# Codex Voice 2 macOS-only pronunciation dictionary.
+# One source,replacement pair per line. Source matching is case-insensitive.
+source,replacement
+audible,odible
+excellent,excellant
+github,guite-hub
+build,bu-ilde
+macos,mac-O-S

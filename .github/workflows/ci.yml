@@ -1,0 +1,15 @@
+name: Validate macOS build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run regression suite
+        run: zsh ./test-codex-voice.sh
+      - name: Compile application bundle
+        run: CODEX_VOICE_SKIP_INSTALL=1 zsh ./build-codex-voice.sh

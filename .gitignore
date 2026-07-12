@@ -1,0 +1,6 @@
+.DS_Store
+.build-cache/
+Codex Voice.app/
+Codex Voice 2.app/
+CodexVoice/Resources/Scripts/__pycache__/
+Distribution/out/
