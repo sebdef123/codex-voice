@@ -20,7 +20,7 @@ from voxtral_text import split_stream_text
 
 MODEL_ID = "mlx-community/Voxtral-4B-TTS-2603-mlx-4bit"
 SAMPLE_RATE = 24_000
-STREAMING_INTERVAL_SECONDS = 0.4
+STREAMING_INTERVAL_SECONDS = 0.8
 _model = None
 _generation_lock = threading.Lock()
 _request_lock = threading.Lock()
@@ -190,6 +190,7 @@ class Handler(BaseHTTPRequestHandler):
                 "generationSeconds": generation_seconds,
                 "chunkCount": chunk_count,
                 "segmentCount": len(segments),
+                "streamingIntervalSeconds": STREAMING_INTERVAL_SECONDS,
                 "serverCPUSeconds": report["cpu_seconds"],
                 "serverMaxRSSBytes": report["max_rss_bytes"],
                 "mlxActiveMemoryBytes": report["mlx_active_memory_bytes"],
@@ -201,6 +202,7 @@ class Handler(BaseHTTPRequestHandler):
             print(
                 f"STREAM done id={request_id} seconds={generation_seconds:.3f} "
                 f"chunks={chunk_count} segments={len(segments)} audio={metadata['audioSeconds']:.3f} "
+                f"interval={STREAMING_INTERVAL_SECONDS:.1f} "
                 f"cpu={report['cpu_seconds']:.3f} rss={report['max_rss_bytes']} "
                 f"mlxPeak={report['mlx_peak_memory_bytes']}",
                 flush=True,

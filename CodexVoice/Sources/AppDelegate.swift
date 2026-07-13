@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var engineMenu: NSMenu!
     private var voiceMenu: NSMenu!
     private var rateMenu: NSMenu!
+    private var voxtralPrebufferMenu: NSMenu!
     private var historyCursor: Int?
 
     private var isEnabled = true {
@@ -50,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             "engine": speaker.selectedEngine.rawValue,
             "version": Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
             "voxtralVoice": speaker.selectedVoxtralVoice,
+            "voxtralPrebufferSeconds": speaker.voxtralPrebufferSeconds,
             "includesTextContent": AudioDebugLogger.includesTextContent
         ])
         updateStatus(idleStatus)
@@ -214,6 +216,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(rateItem)
         rebuildRateMenu()
 
+        let voxtralPrebufferItem = NSMenuItem(title: AppStrings.text("menu.voxtralPrebuffer"), action: nil, keyEquivalent: "")
+        voxtralPrebufferMenu = NSMenu()
+        voxtralPrebufferItem.submenu = voxtralPrebufferMenu
+        menu.addItem(voxtralPrebufferItem)
+        rebuildVoxtralPrebufferMenu()
+
         menu.addItem(.separator())
         let openSessions = NSMenuItem(title: AppStrings.text("menu.openTranscripts"), action: #selector(openSessionsFolder), keyEquivalent: "")
         openSessions.target = self
@@ -270,12 +278,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         speaker.voiceIdentifier = UserDefaults.standard.string(forKey: "voiceIdentifier")
         speaker.rate = UserDefaults.standard.object(forKey: "speechRate") as? Float ?? 0.48
         speaker.selectedVoxtralVoice = UserDefaults.standard.string(forKey: "voxtralVoice") ?? "fr_female"
+        speaker.voxtralPrebufferSeconds = UserDefaults.standard.object(forKey: "voxtralPrebufferSeconds") as? Double
+            ?? VoxtralPrebuffer.defaultSeconds
         if let value = UserDefaults.standard.string(forKey: "selectedEngine"), let engine = VoiceEngineKind(rawValue: value) {
             speaker.selectEngine(engine)
         }
         rebuildEngineMenu()
         rebuildVoiceMenu()
         rebuildRateMenu()
+        rebuildVoxtralPrebufferMenu()
     }
 
     private func logReceivedMessage(kind: String, message: String) {
@@ -421,6 +432,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func rebuildVoxtralPrebufferMenu() {
+        voxtralPrebufferMenu.removeAllItems()
+        for seconds in VoxtralPrebuffer.options {
+            var title = AppStrings.format("prebuffer.seconds", seconds)
+            if abs(seconds - VoxtralPrebuffer.defaultSeconds) < 0.01 {
+                title = AppStrings.format("prebuffer.recommended", title)
+            }
+            let item = NSMenuItem(title: title, action: #selector(selectVoxtralPrebuffer(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = seconds
+            item.state = abs(seconds - speaker.voxtralPrebufferSeconds) < 0.01 ? .on : .off
+            voxtralPrebufferMenu.addItem(item)
+        }
+    }
+
     private func updateStatus(_ message: String) {
         statusMenuItem?.title = message
     }
@@ -481,6 +507,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rebuildEngineMenu()
         rebuildVoiceMenu()
         rebuildRateMenu()
+        rebuildVoxtralPrebufferMenu()
         updateStatus(engine == .macOS ? idleStatus : AppStrings.text("status.preparingVoxtral"))
     }
 
@@ -508,6 +535,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         speaker.rate = rate
         UserDefaults.standard.set(rate, forKey: "speechRate")
         rebuildRateMenu()
+    }
+
+    @objc private func selectVoxtralPrebuffer(_ sender: NSMenuItem) {
+        guard let seconds = sender.representedObject as? Double else { return }
+        speaker.voxtralPrebufferSeconds = seconds
+        UserDefaults.standard.set(seconds, forKey: "voxtralPrebufferSeconds")
+        AudioDebugLogger.log("voxtral_prebuffer_selected", fields: ["seconds": seconds])
+        rebuildVoxtralPrebufferMenu()
+        updateStatus(AppStrings.format("status.voxtralPrebuffer", seconds))
     }
 
     @objc private func openSessionsFolder() { NSWorkspace.shared.open(TranscriptWatcher.sessionsRoot) }

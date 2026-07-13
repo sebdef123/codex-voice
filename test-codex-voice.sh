@@ -29,10 +29,11 @@ HOME="$TRANSFER_HOME" "$TEST_DIR/pronunciation-dictionary-transfer-regression"
 PYTHONPYCACHEPREFIX="$PYTHON_CACHE_DIR" python3 -m py_compile "$ROOT/CodexVoice/Resources/Scripts/voxtral_server.py"
 python3 "$ROOT/Tests/VoxtralTextSegmentationRegression.py"
 plutil -lint "$ROOT/CodexVoice/Info.plist" >/dev/null
-grep -q '<string>1.0.2</string>' "$ROOT/CodexVoice/Info.plist"
+grep -q '<string>1.0.3</string>' "$ROOT/CodexVoice/Info.plist"
 grep -q '<string>en</string>' "$ROOT/CodexVoice/Info.plist"
 grep -q '<string>fr</string>' "$ROOT/CodexVoice/Info.plist"
 grep -q "mlx-audio\[tts\]==0.4.5" "$ROOT/CodexVoice/Resources/Scripts/start-voxtral-server.sh"
+grep -q '^STREAMING_INTERVAL_SECONDS = 0.8$' "$ROOT/CodexVoice/Resources/Scripts/voxtral_server.py"
 zsh -n "$ROOT/create-distribution.sh"
 zsh -n "$ROOT/Distribution/Preparer Voxtral.command"
 
@@ -42,6 +43,13 @@ swiftc \
   -o "$TEST_DIR/localization-regression"
 
 CODEX_VOICE_SOURCE_ROOT="$ROOT" "$TEST_DIR/localization-regression"
+
+swiftc \
+  "$ROOT/CodexVoice/Sources/VoiceTypes.swift" \
+  "$ROOT/Tests/VoxtralPrebufferRegression.swift" \
+  -o "$TEST_DIR/voxtral-prebuffer-regression"
+
+"$TEST_DIR/voxtral-prebuffer-regression"
 
 swiftc \
   "$ROOT/CodexVoice/Sources/AudioDebugLogger.swift" \

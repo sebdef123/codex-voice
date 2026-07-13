@@ -8,16 +8,19 @@ final class VoiceOutputController {
         let sourceKind: String
         let rawText: String
         let text: String
+        let voxtralPrebufferSeconds: TimeInterval?
         let startedAt = Date()
         let appResources = AppResourceSnapshot.capture()
         var firstAudioAt: Date?
 
-        init(engine: VoiceEngineKind, voice: String, sourceKind: String, rawText: String, text: String) {
+        init(engine: VoiceEngineKind, voice: String, sourceKind: String, rawText: String, text: String,
+             voxtralPrebufferSeconds: TimeInterval?) {
             self.engine = engine
             self.voice = voice
             self.sourceKind = sourceKind
             self.rawText = rawText
             self.text = text
+            self.voxtralPrebufferSeconds = voxtralPrebufferSeconds
         }
     }
 
@@ -39,6 +42,14 @@ final class VoiceOutputController {
         didSet { macSpeech.rate = rate }
     }
     var selectedVoxtralVoice = "fr_female"
+    private var storedVoxtralPrebufferSeconds = VoxtralPrebuffer.defaultSeconds
+    var voxtralPrebufferSeconds: TimeInterval {
+        get { storedVoxtralPrebufferSeconds }
+        set {
+            storedVoxtralPrebufferSeconds = VoxtralPrebuffer.clamped(newValue)
+            voxtralSpeech.initialPrebufferSeconds = storedVoxtralPrebufferSeconds
+        }
+    }
 
     var isSpeaking: Bool { activeRequest != nil }
 
@@ -73,7 +84,15 @@ final class VoiceOutputController {
         if activeRequest != nil { stop(reason: "superseded") }
 
         let voice = selectedEngine == .macOS ? (voiceIdentifier ?? "French system voice") : selectedVoxtralVoice
-        let request = ActiveRequest(engine: selectedEngine, voice: voice, sourceKind: sourceKind, rawText: rawText, text: trimmed)
+        let prebuffer = selectedEngine == .voxtralStreaming ? voxtralPrebufferSeconds : nil
+        let request = ActiveRequest(
+            engine: selectedEngine,
+            voice: voice,
+            sourceKind: sourceKind,
+            rawText: rawText,
+            text: trimmed,
+            voxtralPrebufferSeconds: prebuffer
+        )
         activeRequest = request
         var logFields: [String: Any] = [:]
         AudioDebugLogger.addTextField(rawText, named: "rawText", to: &logFields)
@@ -229,6 +248,9 @@ final class VoiceOutputController {
         ]
         if let firstAudioAt = request.firstAudioAt {
             fields["firstAudioDelaySeconds"] = firstAudioAt.timeIntervalSince(request.startedAt)
+        }
+        if let prebuffer = request.voxtralPrebufferSeconds {
+            fields["streamInitialPrebufferSeconds"] = prebuffer
         }
         return fields
     }

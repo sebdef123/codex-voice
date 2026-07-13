@@ -32,7 +32,7 @@ struct LocalizationRegression {
         for language in ["en", "fr"] {
             let path = "\(root)/CodexVoice/Resources/\(language).lproj/Localizable.strings"
             let contents = try String(contentsOfFile: path, encoding: .utf8)
-            for key in ["menu.automaticReading", "menu.voice", "status.monitoringActive", "alert.clearAudioLogsTitle"] {
+            for key in ["menu.automaticReading", "menu.voice", "menu.voxtralPrebuffer", "status.monitoringActive", "status.voxtralPrebuffer", "prebuffer.recommended", "alert.clearAudioLogsTitle"] {
                 require(contents.contains("\"\(key)\""), "\(language) is missing \(key)")
             }
         }

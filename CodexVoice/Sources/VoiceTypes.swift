@@ -49,6 +49,17 @@ enum VoxtralVoiceCatalog {
     static var all: [VoxtralVoicePreset] { recommended + others }
 }
 
+enum VoxtralPrebuffer {
+    static let options: [TimeInterval] = [0.7, 1.0, 1.3, 1.5, 1.8, 2.0, 2.5]
+    static let defaultSeconds: TimeInterval = 1.5
+    static let minimumSeconds: TimeInterval = 0.7
+    static let maximumSeconds: TimeInterval = 2.5
+
+    static func clamped(_ seconds: TimeInterval) -> TimeInterval {
+        min(max(seconds, minimumSeconds), maximumSeconds)
+    }
+}
+
 struct VoiceResourceReport {
     var serverCPUSeconds: Double?
     var serverMaxRSSBytes: UInt64?

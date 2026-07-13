@@ -18,6 +18,7 @@
 "menu.engine" = "Moteur";
 "menu.voice" = "Voix";
 "menu.speed" = "Vitesse";
+"menu.voxtralPrebuffer" = "Reserve audio Voxtral";
 "menu.openTranscripts" = "Ouvrir le dossier des transcripts";
 "menu.openAudioLog" = "Ouvrir le log audio";
 "menu.clearAudioLogs" = "Effacer les logs audio";
@@ -47,6 +48,7 @@
 "status.technicalBlockSkipped" = "Bloc technique ignore";
 "status.readingBlock" = "Lecture bloc %d/%d";
 "status.macOSVoice" = "Voix macOS: %@";
+"status.voxtralPrebuffer" = "Reserve Voxtral: %.1f s";
 "status.audioLogCleared" = "Logs audio effaces";
 "status.dictionaryImported" = "Dictionnaire importe";
 "status.dictionaryExported" = "Dictionnaire exporte";
@@ -67,6 +69,9 @@
 "rate.normal" = "Normale";
 "rate.fast" = "Rapide";
 "rate.veryFast" = "Tres rapide";
+
+"prebuffer.seconds" = "%.1f s";
+"prebuffer.recommended" = "%@ (recommande)";
 
 "alert.clearAudioLogsTitle" = "Effacer les logs audio ?";
 "alert.clearAudioLogsMessage" = "Les evenements audio et le journal Voxtral seront supprimes de cet ordinateur. Cette action est irreversible.";

@@ -18,7 +18,8 @@ https://github.com/sebdef123/codex-voice
 2. Download the latest release ZIP, extract it, and move Codex Voice 2.app to /Applications.
 3. Prepare the local Voxtral backend. If needed, install uv, then run Preparer Voxtral.command included in the release to download the pinned local model and its dependencies.
 4. Launch the app and tell me which macOS permissions I need to approve, including Input Monitoring. If Gatekeeper blocks the first launch, explain the safe manual step I need to take.
-5. Do not modify my existing Codex configuration.
+5. Explain that switching the app back to macOS TTS stops the local Voxtral server and selecting Voxtral Streaming starts it again when needed.
+6. Do not modify my existing Codex configuration.
 ```
 
 ## Highlights
@@ -47,6 +48,18 @@ https://github.com/sebdef123/codex-voice
 
 To enable Voxtral Streaming, install `uv` and run `Preparer Voxtral.command` included in the release once. The script fetches the pinned audio dependency and the model locally.
 
+### Stop or restart Voxtral
+
+The normal method is to select **macOS TTS** in `Engine`. Codex Voice immediately stops the local Voxtral server and releases its resources. Selecting **Voxtral Streaming** again starts the server on demand.
+
+If the backend ever needs to be stopped manually, run:
+
+```sh
+lsof -tiTCP:8765 -sTCP:LISTEN | while read -r pid; do kill "$pid"; done
+```
+
+The next Voxtral reading will start a fresh server automatically.
+
 ## Privacy
 
 Codex Voice reads local transcript files so it can speak assistant responses. It does not upload those transcripts or contact a remote TTS API.
@@ -69,7 +82,7 @@ The app does not include or redistribute model weights. Voxtral weights are down
 
 ## Status
 
-`v1.0.2` is the current public maintenance release. The focus is comfort, natural voice quality, interruption behavior, and small operational surface area rather than a full replacement for Codex.
+`v1.0.3` is the current public maintenance release. The focus is comfort, natural voice quality, interruption behavior, and small operational surface area rather than a full replacement for Codex.
 
 ## Disclaimer
 

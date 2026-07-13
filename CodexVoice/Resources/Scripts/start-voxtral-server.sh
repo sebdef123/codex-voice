@@ -15,4 +15,4 @@ if [[ -z "$UV" ]]; then
 fi
 
 echo "Starting the Voxtral 4B 4bit bridge. --preload warms the model before the server accepts speech."
-exec "$UV" run --python 3.11 --with 'mlx-audio[tts]==0.4.5' --with numpy --with soundfile python "$ROOT/voxtral_server.py" "$@"
+exec env PYTHONDONTWRITEBYTECODE=1 "$UV" run --python 3.11 --with 'mlx-audio[tts]==0.4.5' --with numpy --with soundfile python -B "$ROOT/voxtral_server.py" "$@"

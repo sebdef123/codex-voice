@@ -3,7 +3,8 @@ import Foundation
 
 final class VoxtralStreamingController: NSObject, URLSessionDataDelegate {
     private let sampleRate = 24_000.0
-    private let initialPrebufferSeconds = 0.8
+    private var configuredPrebufferSeconds = VoxtralPrebuffer.defaultSeconds
+    private var activePrebufferSeconds = VoxtralPrebuffer.defaultSeconds
     private var session: URLSession?
     private var task: URLSessionDataTask?
     private var audioEngine: AVAudioEngine?
@@ -29,6 +30,11 @@ final class VoxtralStreamingController: NSObject, URLSessionDataDelegate {
     private var maxUnderrunGap: TimeInterval = 0
     private var responseError: Error?
 
+    var initialPrebufferSeconds: TimeInterval {
+        get { configuredPrebufferSeconds }
+        set { configuredPrebufferSeconds = VoxtralPrebuffer.clamped(newValue) }
+    }
+
     private struct StreamMetadata: Decodable {
         let audioSeconds: TimeInterval
         let generationSeconds: TimeInterval
@@ -48,6 +54,7 @@ final class VoxtralStreamingController: NSObject, URLSessionDataDelegate {
         self.onFinished = onFinished
         self.onFailure = onFailure
         startedAt = Date()
+        activePrebufferSeconds = configuredPrebufferSeconds
 
         guard let url = URL(string: "http://127.0.0.1:8765/speak/stream") else { return }
         var request = URLRequest(url: url)
@@ -163,7 +170,7 @@ final class VoxtralStreamingController: NSObject, URLSessionDataDelegate {
 
     private func startPlaybackIfNeeded(force: Bool = false) {
         guard playbackStartDelay == nil, queuedAudioSeconds > 0,
-              force || queuedAudioSeconds >= initialPrebufferSeconds else { return }
+              force || queuedAudioSeconds >= activePrebufferSeconds else { return }
         playerNode?.play()
         playbackStartDelay = startedAt.map { Date().timeIntervalSince($0) }
         scheduledPlaybackEnd = Date().addingTimeInterval(queuedAudioSeconds)
